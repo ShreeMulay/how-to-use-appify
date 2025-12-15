@@ -1,0 +1,21 @@
+# Apify Learning Lab - Python Dependencies
+# =========================================
+# Install with: pip install -r requirements.txt
+
+# Apify Client - Official Python client for Apify API
+apify-client>=1.8.0
+
+# Environment Management
+python-dotenv>=1.0.0
+
+# Rich Terminal Output
+rich>=13.9.0
+
+# HTTP Requests (optional, apify-client handles this)
+httpx>=0.27.0
+
+# Data Processing
+pandas>=2.2.0
+
+# JSON Schema Validation (for actor inputs)
+jsonschema>=4.23.0

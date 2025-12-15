@@ -1,0 +1,110 @@
+# Apify Learning Lab - Git Ignore
+# ================================
+
+# Environment & Secrets
+# ---------------------
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Dependencies
+# ------------
+node_modules/
+.pnp/
+.pnp.js
+
+# Build Output
+# ------------
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# Bun
+# ---
+bun.lockb
+
+# TypeScript
+# ----------
+*.tsbuildinfo
+
+# Testing
+# -------
+coverage/
+.nyc_output/
+
+# IDE & Editors
+# -------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+# ----
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python
+# ------
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+.venv/
+ENV/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime Data
+# ------------
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary Files
+# ---------------
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# OS Generated
+# ------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Project Specific
+# ----------------
+# Downloaded datasets
+datasets/
+# Scraped data output
+output/
+# Actor run artifacts
+runs/

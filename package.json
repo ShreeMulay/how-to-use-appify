@@ -1,0 +1,43 @@
+{
+  "name": "apify-learning-lab",
+  "version": "1.0.0",
+  "description": "Comprehensive learning environment for Apify.com APIs and tools",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "cli"
+  ],
+  "scripts": {
+    "dev": "bun run dev:api & bun run dev:web",
+    "dev:api": "bun run --hot packages/api/src/index.ts",
+    "dev:web": "bun run --cwd packages/web dev",
+    "build": "bun run build:api && bun run build:web",
+    "build:api": "bun build packages/api/src/index.ts --outdir dist/api --target bun",
+    "build:web": "bun run --cwd packages/web build",
+    "start:api": "bun run dist/api/index.js",
+    "test": "bun test",
+    "test:api": "bun test packages/api",
+    "lint": "bunx biome check .",
+    "lint:fix": "bunx biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "cli": "bun run cli/src/index.ts",
+    "clean": "rm -rf dist node_modules packages/*/node_modules cli/node_modules"
+  },
+  "keywords": [
+    "apify",
+    "web-scraping",
+    "automation",
+    "learning",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@types/bun": "latest",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
