@@ -6,8 +6,9 @@
 |-------|-------|
 | **Project Name** | Apify Learning Lab |
 | **Repository** | `how-to-use-appify` |
-| **Version** | 1.0.0 |
+| **Version** | 1.0.1 |
 | **Created** | 2024-12-14 |
+| **Last Updated** | 2024-12-14 |
 | **Status** | In Development |
 
 ---
@@ -19,7 +20,7 @@
 Apify Learning Lab is a comprehensive learning environment for developers to explore and master the Apify.com platform. It provides three complementary approaches to learning:
 
 1. **Interactive Web Dashboard** - A full-stack web application for exploring actors, running scraping jobs, and managing data
-2. **Python Sample Scripts** - Standalone, well-documented scripts demonstrating various Apify features
+2. **Python Sample Scripts** - Standalone, well-documented scripts demonstrating various Apify features  
 3. **CLI Playground** - A command-line tool for quick interactions with the Apify API
 
 ### 1.2 Goals
@@ -43,11 +44,11 @@ Apify Learning Lab is a comprehensive learning environment for developers to exp
 
 | Layer | Technology | Version | Purpose |
 |-------|------------|---------|---------|
-| Runtime | Bun | 1.3.3 | JavaScript/TypeScript runtime |
+| Runtime | Bun | 1.3.3+ | JavaScript/TypeScript runtime |
 | Backend | Hono | 4.6.x | Lightweight web framework |
 | Frontend | React | 19.x | UI library |
 | UI Components | shadcn/ui | v4 | Pre-built accessible components |
-| Styling | Tailwind CSS | 4.x | Utility-first CSS |
+| Styling | Tailwind CSS | 3.4.x | Utility-first CSS |
 | Python | System Python | 3.12.8 | Sample scripts |
 | Validation | Zod | 3.23.x | Runtime type validation |
 
@@ -64,15 +65,15 @@ Apify Learning Lab is a comprehensive learning environment for developers to exp
 │           │                    │                   │        │
 └───────────┼────────────────────┼───────────────────┼────────┘
             │                    │                   │
-            ▼                    ▼                   │
+            ▼                    ▼                   │ 
 ┌─────────────────────────────────────────────────────────────┐
 │                      API Gateway Layer                       │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │              Hono API Server (:3001)                 │   │
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │   │
-│  │  │ /actors │ │/datasets│ │/storage │ │  /runs  │   │   │
-│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘   │   │
+│  │  ┌─────────┐ ┌─────────┐           ┌─────────┐      │   │
+│  │  │ /actors │ │/datasets│           │  /runs  │      │   │
+│  │  └─────────┘ └─────────┘           └─────────┘      │   │
 │  │                                                      │   │
 │  │  ┌────────────────────────────────────────────┐     │   │
 │  │  │           Apify Client Service              │     │   │
@@ -91,6 +92,8 @@ Apify Learning Lab is a comprehensive learning environment for developers to exp
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+**Note**: `/api/storage` routes are not currently implemented in the backend. The frontend has storage UI components, but they will fail with 404 errors until storage routes are added.
 
 ### 2.3 Project Structure
 
@@ -112,9 +115,9 @@ how-to-use-appify/
 │   │       ├── routes/
 │   │       │   ├── actors.ts         # Actor-related endpoints
 │   │       │   ├── datasets.ts       # Dataset endpoints
-│   │       │   ├── storage.ts        # Key-Value Store endpoints
 │   │       │   ├── runs.ts           # Run management endpoints
 │   │       │   └── health.ts         # Health check endpoints
+│   │       │   └── storage.ts        # NOT IMPLEMENTED
 │   │       ├── services/
 │   │       │   └── apify-client.ts   # Apify API wrapper
 │   │       ├── middleware/
@@ -138,12 +141,11 @@ how-to-use-appify/
 │           ├── components/
 │           │   ├── ui/               # shadcn/ui components
 │           │   ├── layout/           # Layout components
-│           │   ├── actors/           # Actor-related components
-│           │   ├── datasets/         # Dataset components
-│           │   ├── storage/          # Storage components
-│           │   └── runs/             # Run management components
+│           │   └── actors/           # Actor-related components
 │           ├── hooks/                # Custom React hooks
 │           ├── lib/                  # Utility functions
+│           │   └── api-client.ts     # API client wrapper
+│           ├── pages/                # Page components
 │           └── types/                # TypeScript types
 │
 ├── python-samples/                   # Python Learning Scripts
@@ -154,11 +156,10 @@ how-to-use-appify/
 └── cli/                              # CLI Playground
     ├── package.json
     ├── tsconfig.json
-    ├── README.md
     └── src/
         ├── index.ts                  # CLI entry point
-        ├── commands/                 # Command implementations
-        └── lib/                      # Shared utilities
+        └── lib/
+            └── client.ts             # CLI Apify client wrapper
 ```
 
 ---
@@ -179,6 +180,11 @@ how-to-use-appify/
 
 Returns curated list of learning-friendly actors.
 
+**Query Parameters:**
+- `category` (string) - Filter by category
+- `difficulty` (string) - Filter by difficulty
+- `search` (string) - Search actors (Note: frontend handles this client-side)
+
 **Response:**
 ```json
 {
@@ -190,7 +196,29 @@ Returns curated list of learning-friendly actors.
       "category": "ai-llm",
       "difficulty": "beginner",
       "estimatedCost": "low",
-      "documentationUrl": "https://apify.com/apify/website-content-crawler"
+      "documentationUrl": "https://apify.com/apify/website-content-crawler",
+      "exampleInput": {...}
+    }
+  ],
+  "meta": {
+    "total": 20,
+    "categories": ["ai-llm", "social-media", "business-data", "ecommerce", "developer-tools"]
+  }
+}
+```
+
+#### GET /api/actors/categories
+
+Returns available actor categories.
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": "ai-llm",
+      "name": "Ai Llm",
+      "count": 3
     }
   ]
 }
@@ -198,10 +226,7 @@ Returns curated list of learning-friendly actors.
 
 #### GET /api/actors/:actorId
 
-Returns detailed actor information from Apify API.
-
-**Parameters:**
-- `actorId` (path) - Actor ID (e.g., `apify/website-content-crawler`)
+Returns detailed actor information from Apify API, including curated metadata.
 
 **Response:**
 ```json
@@ -217,21 +242,26 @@ Returns detailed actor information from Apify API.
       "totalRuns": 50000,
       "totalUsers": 10000
     },
-    "versions": [...]
+    "curated": {
+      "category": "ai-llm",
+      "difficulty": "beginner",
+      "estimatedCost": "low",
+      "exampleInput": {...}
+    }
   }
 }
 ```
 
 #### GET /api/actors/:actorId/input-schema
 
-Returns the input schema for an actor.
+Returns the input schema for an actor. Falls back to example input from curated list if schema not available.
 
 **Response:**
 ```json
 {
   "data": {
     "title": "Website Content Crawler Input",
-    "type": "object",
+    "type": "object", 
     "schemaVersion": 1,
     "properties": {
       "startUrls": {
@@ -293,6 +323,7 @@ Returns run status and details.
 {
   "data": {
     "id": "run123abc",
+    "actId": "aYG0l9s7dbB7j3gbS",
     "status": "SUCCEEDED",
     "startedAt": "2024-12-14T10:00:00.000Z",
     "finishedAt": "2024-12-14T10:05:00.000Z",
@@ -310,9 +341,6 @@ Returns run status and details.
 #### GET /api/actors/:actorId/runs/:runId/log
 
 Returns the run log.
-
-**Query Parameters:**
-- `stream` (boolean) - Enable streaming (default: false)
 
 **Response:**
 ```json
@@ -346,6 +374,7 @@ Lists all datasets for the authenticated user.
 **Query Parameters:**
 - `limit` (number) - Max results (default: 20)
 - `offset` (number) - Pagination offset (default: 0)
+- `unnamed` (boolean) - Include unnamed datasets
 
 **Response:**
 ```json
@@ -389,10 +418,11 @@ Returns dataset metadata.
 Returns dataset items with pagination.
 
 **Query Parameters:**
-- `limit` (number) - Max items (default: 50, max: 1000)
+- `limit` (number) - Max items (default: 50, max: 1000, enforced by backend)
 - `offset` (number) - Pagination offset (default: 0)
 - `clean` (boolean) - Exclude metadata fields (default: true)
-- `format` (string) - Response format: json, csv, xlsx (default: json)
+- `desc` (boolean) - Descending order (default: false)
+- `fields` (string) - Comma-separated field list
 
 **Response:**
 ```json
@@ -406,6 +436,7 @@ Returns dataset items with pagination.
       }
     ],
     "total": 1500,
+    "count": 50,
     "offset": 0,
     "limit": 50
   }
@@ -435,89 +466,18 @@ Pushes items to a dataset.
 }
 ```
 
-### 3.4 Storage Endpoints (Key-Value Stores)
+#### GET /api/datasets/:datasetId/download
 
-#### GET /api/storage
-
-Lists all key-value stores.
-
-**Response:**
-```json
-{
-  "data": {
-    "items": [
-      {
-        "id": "kvs123",
-        "name": "my-store",
-        "createdAt": "2024-12-14T10:00:00.000Z"
-      }
-    ],
-    "total": 10
-  }
-}
-```
-
-#### GET /api/storage/:storeId/records
-
-Lists record keys in a store.
+Downloads all dataset items as CSV or JSON. **Note:** Currently pulls up to 10,000 items into memory for conversion.
 
 **Query Parameters:**
-- `limit` (number) - Max keys (default: 100)
-- `exclusiveStartKey` (string) - Pagination cursor
+- `format` (string) - `json` or `csv` (default: `json`)
 
-**Response:**
-```json
-{
-  "data": {
-    "items": [
-      {"key": "config", "size": 1024},
-      {"key": "state", "size": 512}
-    ],
-    "isTruncated": false
-  }
-}
-```
+**Response:** Binary download stream with appropriate Content-Type and Content-Disposition headers.
 
-#### GET /api/storage/:storeId/records/:key
+#### DELETE /api/datasets/:datasetId
 
-Returns a record value.
-
-**Response:**
-```json
-{
-  "data": {
-    "key": "config",
-    "value": {"setting1": true, "setting2": "value"},
-    "contentType": "application/json"
-  }
-}
-```
-
-#### PUT /api/storage/:storeId/records/:key
-
-Sets a record value.
-
-**Request Body:**
-```json
-{
-  "value": {"setting1": false},
-  "contentType": "application/json"
-}
-```
-
-**Response:**
-```json
-{
-  "data": {
-    "success": true,
-    "key": "config"
-  }
-}
-```
-
-#### DELETE /api/storage/:storeId/records/:key
-
-Deletes a record.
+Deletes a dataset.
 
 **Response:**
 ```json
@@ -528,6 +488,20 @@ Deletes a record.
 }
 ```
 
+### 3.4 Storage Endpoints (Key-Value Stores)
+
+**Status: NOT IMPLEMENTED**
+
+The following endpoints are specified in the OpenSpec but do not exist in the current implementation:
+
+- `GET /api/storage` - List key-value stores
+- `GET /api/storage/:storeId/records` - List record keys
+- `GET /api/storage/:storeId/records/:key` - Get record value
+- `PUT /api/storage/:storeId/records/:key` - Set record value
+- `DELETE /api/storage/:storeId/records/:key` - Delete record
+
+**Frontend Impact:** The `/storage` page in the web app will display an error or empty state until these routes are implemented.
+
 ### 3.5 Runs Endpoints
 
 #### GET /api/runs
@@ -535,9 +509,10 @@ Deletes a record.
 Lists recent actor runs.
 
 **Query Parameters:**
-- `limit` (number) - Max results (default: 20)
-- `offset` (number) - Pagination offset
-- `status` (string) - Filter by status: RUNNING, SUCCEEDED, FAILED, ABORTED
+- `limit` (number) - Max results (default: 20, max: 100)
+- `offset` (number) - Pagination offset (default: 0)
+- `status` (string) - Filter by status: `READY`, `RUNNING`, `SUCCEEDED`, `FAILED`, `ABORTED`, `TIMED_OUT`
+- `actorId` (string) - Filter by actor ID
 
 **Response:**
 ```json
@@ -547,13 +522,18 @@ Lists recent actor runs.
       {
         "id": "run123",
         "actId": "aYG0l9s7dbB7j3gbS",
-        "actName": "website-content-crawler",
         "status": "SUCCEEDED",
         "startedAt": "2024-12-14T10:00:00.000Z",
-        "finishedAt": "2024-12-14T10:05:00.000Z"
+        "finishedAt": "2024-12-14T10:05:00.000Z",
+        "stats": {
+          "durationMillis": 300000,
+          "resurrectCount": 0
+        }
       }
     ],
-    "total": 100
+    "total": 100,
+    "offset": 0,
+    "limit": 20
   }
 }
 ```
@@ -562,17 +542,40 @@ Lists recent actor runs.
 
 Returns detailed run information.
 
+**Response:** Same as individual item from `/api/runs` list.
+
 #### GET /api/runs/:runId/log
 
 Returns run log content.
+
+**Response:**
+```json
+{
+  "data": {
+    "log": "2024-12-14T10:00:00.000Z INFO Starting crawl...\n..."
+  }
+}
+```
 
 #### POST /api/runs/:runId/abort
 
 Aborts a running actor.
 
+**Response:**
+```json
+{
+  "data": {
+    "id": "run123abc",
+    "status": "ABORTING"
+  }
+}
+```
+
 #### POST /api/runs/:runId/resurrect
 
 Resurrects a finished run.
+
+**Response:** Resurrected run object.
 
 ### 3.6 Health Endpoints
 
@@ -585,7 +588,8 @@ Server health check.
 {
   "status": "ok",
   "timestamp": "2024-12-14T10:00:00.000Z",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "environment": "development"
 }
 ```
 
@@ -600,6 +604,7 @@ Apify API connectivity check.
   "apifyConnected": true,
   "user": {
     "username": "myuser",
+    "email": "user@example.com",
     "plan": "FREE"
   }
 }
@@ -621,69 +626,87 @@ interface Actor {
   description: string;
   stats: ActorStats;
   versions: ActorVersion[];
+  isPublic: boolean;
+  createdAt: string;
+  modifiedAt: string;
+  curated?: CuratedActorMetadata;
 }
 
 interface ActorStats {
   totalBuilds: number;
   totalRuns: number;
   totalUsers: number;
+  totalUsers30Days?: number;
   lastRunStartedAt?: string;
 }
 
-interface PopularActor {
-  id: string;
-  name: string;
-  description: string;
-  category: ActorCategory;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  estimatedCost: 'low' | 'medium' | 'high';
-  documentationUrl: string;
+interface ActorVersion {
+  versionNumber: string;
+  buildTag: string;
+  sourceType: string;
+  envVars?: Record<string, string>;
 }
 
-type ActorCategory = 
-  | 'ai-llm'
-  | 'social-media'
-  | 'business-data'
-  | 'ecommerce'
-  | 'developer-tools';
+interface CuratedActorMetadata {
+  category: ActorCategory;
+  difficulty: ActorDifficulty;
+  estimatedCost: ActorCost;
+  exampleInput?: Record<string, unknown>;
+}
+
+type ActorCategory = "ai-llm" | "social-media" | "business-data" | "ecommerce" | "developer-tools";
+type ActorDifficulty = "beginner" | "intermediate" | "advanced";
+type ActorCost = "low" | "medium" | "high";
 
 // Run Types
 interface ActorRun {
   id: string;
   actId: string;
+  actorTaskId?: string;
   status: RunStatus;
   startedAt: string;
   finishedAt?: string;
-  stats: RunStats;
-  defaultDatasetId: string;
+  buildId: string;
+  buildNumber: string;
+  exitCode?: number;
   defaultKeyValueStoreId: string;
+  defaultDatasetId: string;
+  defaultRequestQueueId: string;
+  containerUrl?: string;
+  stats: RunStats;
+  options: RunOptions;
+  usage?: RunUsage;
 }
 
-type RunStatus = 
-  | 'READY'
-  | 'RUNNING'
-  | 'SUCCEEDED'
-  | 'FAILED'
-  | 'ABORTING'
-  | 'ABORTED'
-  | 'TIMING-OUT'
-  | 'TIMED-OUT';
+type RunStatus = "READY" | "RUNNING" | "SUCCEEDED" | "FAILED" | "ABORTING" | "ABORTED" | "TIMING-OUT" | "TIMED-OUT";
 
 interface RunStats {
   inputBodyLen: number;
-  durationMillis: number;
+  restartCount: number;
   resurrectCount: number;
-  computeUnits: number;
+  durationMillis?: number;
+  runTimeSecs?: number;
+  computeUnits?: number;
+}
+
+interface RunOptions {
+  build: string;
+  timeoutSecs: number;
+  memoryMbytes: number;
 }
 
 // Dataset Types
 interface Dataset {
   id: string;
   name?: string;
-  itemCount: number;
-  cleanItemCount: number;
+  userId: string;
   createdAt: string;
   modifiedAt: string;
+  accessedAt: string;
+  itemCount: number;
+  cleanItemCount: number;
+  actId?: string;
+  actRunId?: string;
 }
 
 interface DatasetItem {
@@ -694,11 +717,15 @@ interface DatasetItem {
 interface KeyValueStore {
   id: string;
   name?: string;
+  userId: string;
   createdAt: string;
   modifiedAt: string;
+  accessedAt: string;
+  actId?: string;
+  actRunId?: string;
 }
 
-interface KeyValueRecord {
+interface KeyValueRecordInfo {
   key: string;
   value: unknown;
   contentType: string;
@@ -708,6 +735,11 @@ interface KeyValueRecord {
 // API Response Types
 interface ApiResponse<T> {
   data: T;
+  meta?: {
+    total: number;
+    offset: number;
+    limit: number;
+  };
   error?: never;
 }
 
@@ -716,6 +748,7 @@ interface ApiError {
   error: {
     type: string;
     message: string;
+    statusCode?: number;
   };
 }
 
@@ -728,29 +761,26 @@ type ApiResult<T> = ApiResponse<T> | ApiError;
 
 ### 5.1 Pages and Routes
 
-| Route | Component | Description |
-|-------|-----------|-------------|
-| `/` | `Dashboard` | Overview with stats and recent activity |
-| `/actors` | `ActorExplorer` | Browse curated actors |
-| `/actors/:id` | `ActorDetail` | Actor info and run interface |
-| `/datasets` | `DatasetList` | Browse all datasets |
-| `/datasets/:id` | `DatasetViewer` | View dataset items |
-| `/storage` | `StorageManager` | Browse key-value stores |
-| `/storage/:id` | `StoreViewer` | View store records |
-| `/runs` | `RunHistory` | List all runs |
-| `/runs/:id` | `RunDetail` | Run details and logs |
+| Route | Component | Description | Implementation Status |
+|-------|-----------|-------------|----------------------|
+| `/` | `Dashboard` | Overview with stats and recent activity | ✅ Implemented |
+| `/actors` | `ActorExplorer` | Browse curated actors | ✅ Implemented |
+| `/actors/:id` | `ActorRunner` | Actor run interface with config and logs | ✅ Implemented |
+| `/datasets` | `Datasets` | Browse all datasets | ✅ Implemented |
+| `/datasets/:id` | `DatasetViewer` | View dataset items | ✅ Implemented |
+| `/storage` | `Storage` | Browse key-value stores | ⚠️ UI exists, API missing |
+| `/runs` | `Runs` | List all runs | ✅ Implemented |
+| `/runs/:id` | `RunDetail` | Run details and logs | ❌ Not implemented |
 
 ### 5.2 Component Hierarchy
 
 ```
 App
-├── Layout
-│   ├── Sidebar
-│   │   ├── Navigation
-│   │   └── UserInfo
-│   └── Header
-│       ├── Breadcrumbs
-│       └── ThemeToggle
+├── AppLayout
+│   ├── AppSidebar
+│   │   └── SidebarMenu
+│   └── AppHeader
+│       └── Breadcrumb
 │
 ├── Dashboard
 │   ├── StatsCards
@@ -758,123 +788,55 @@ App
 │   └── QuickActions
 │
 ├── ActorExplorer
-│   ├── CategoryFilter
 │   ├── SearchInput
+│   ├── CategoryFilter
 │   └── ActorGrid
 │       └── ActorCard
 │
-├── ActorDetail
-│   ├── ActorHeader
-│   ├── InputSchemaForm
-│   ├── RunButton
-│   └── RunStatusPanel
+├── ActorRunner
+│   ├── RunConfiguration
+│   └── RunOutput
 │
-├── DatasetList
-│   ├── DatasetTable
-│   └── Pagination
+├── Datasets
+│   └── DatasetTable
 │
 ├── DatasetViewer
 │   ├── DatasetInfo
-│   ├── DataTable
-│   ├── ExportButton
-│   └── Pagination
+│   └── DataTable
 │
-├── StorageManager
-│   ├── StoreList
-│   └── RecordEditor
+├── Storage
+│   └── StoreTable (⚠️ No API)
 │
-└── RunHistory
-    ├── RunFilters
-    ├── RunTable
-    └── RunLogViewer
+└── Runs
+    └── RunTable
 ```
 
-### 5.3 shadcn/ui Components Required
+### 5.3 API Client Implementation
 
-| Component | Usage |
-|-----------|-------|
-| `button` | Actions, form submission |
-| `card` | Actor cards, stat cards |
-| `input` | Form inputs, search |
-| `select` | Dropdowns, filters |
-| `table` | Dataset items, run history |
-| `tabs` | Page navigation |
-| `dialog` | Modals, confirmations |
-| `toast` | Notifications |
-| `badge` | Status indicators |
-| `skeleton` | Loading states |
-| `scroll-area` | Log viewer |
-| `form` | Input schema forms |
-| `separator` | Visual dividers |
-| `dropdown-menu` | Action menus |
-| `command` | Command palette |
-| `sidebar` | Navigation |
+The web frontend uses `packages/web/src/lib/api-client.ts` which has known inconsistencies:
+
+- **Mixed Response Handling**: Some endpoints return full `{data, meta}` objects while others use `fetcher()` that extracts only `data`
+- **Hardcoded URLs**: Download links use `http://localhost:3001` instead of relative paths, breaking proxy behavior
+- **Client-Side Search**: Actor search is performed client-side even though backend supports query parameters
+
+Recommended improvements:
+1. Standardize all API methods to use `fetcher()` for consistency
+2. Use relative URLs for downloads to leverage Vite proxy
+3. Move search logic to backend query parameters
 
 ---
 
-## 6. Python Samples Specification
+## 6. Python Samples
 
 ### 6.1 Script Index
 
-| # | Filename | Actor/Feature | Concepts Covered |
-|---|----------|---------------|------------------|
-| 01 | `hello_world.py` | Basic API | Client setup, authentication, user info |
-| 02 | `website_content_crawler.py` | `apify/website-content-crawler` | Running actors, getting results |
-| 03 | `web_scraper_custom.py` | `apify/web-scraper` | Custom page functions |
-| 04 | `google_maps_scraper.py` | `apify/google-maps-scraper` | Business data extraction |
-| 05 | `instagram_scraper.py` | `apify/instagram-scraper` | Social media scraping |
-| 06 | `tiktok_scraper.py` | `clockworks/free-tiktok-scraper` | Video metadata |
-| 07 | `twitter_scraper.py` | `apidojo/twitter-scraper-lite` | Tweet extraction |
-| 08 | `amazon_scraper.py` | `junglee/amazon-product-scraper` | E-commerce data |
-| 09 | `dataset_operations.py` | Direct API | CRUD on datasets |
-| 10 | `key_value_store.py` | Direct API | Persistent storage |
-| 11 | `run_management.py` | Direct API | Monitoring, abort, resurrect |
-| 12 | `scheduled_tasks.py` | Direct API | Scheduling actor runs |
+| # | Filename | Actor/Feature | Status |
+|---|----------|---------------|--------|
+| 01 | `01_hello_world.py` | Basic API setup | ✅ Implemented |
+| 02 | `02_website_content_crawler.py` | Website Content Crawler | ✅ Implemented |
+| 03-12 | Various | Multiple actors/features | ❌ Not yet created |
 
-### 6.2 Script Template
-
-Each script follows this structure:
-
-```python
-#!/usr/bin/env python3
-"""
-Script Title
-============
-
-Description of what this script demonstrates.
-
-Prerequisites:
-- APIFY_API_TOKEN environment variable set
-- apify-client package installed
-
-Usage:
-    python 01_hello_world.py
-
-What you'll learn:
-- Concept 1
-- Concept 2
-"""
-
-import os
-from apify_client import ApifyClient
-
-# Configuration
-APIFY_TOKEN = os.environ.get("APIFY_API_TOKEN")
-if not APIFY_TOKEN:
-    raise ValueError("APIFY_API_TOKEN environment variable not set")
-
-def main():
-    """Main function demonstrating the feature."""
-    # Initialize client
-    client = ApifyClient(APIFY_TOKEN)
-    
-    # ... implementation ...
-    
-    print("Done!")
-
-if __name__ == "__main__":
-    main()
-```
+**Note**: Only scripts 01 and 02 are currently implemented. Scripts 03-12 are planned but not yet created.
 
 ---
 
@@ -890,98 +852,38 @@ Commands:
   datasets   Browse and export datasets
   storage    Manage key-value stores
   runs       View and control runs
-  
+
 Global Options:
   --help, -h     Show help
   --version, -v  Show version
   --json         Output as JSON
 ```
 
-### 7.2 Command Details
+### 7.2 Implementation Notes
 
-#### Actors Commands
+The CLI (`cli/src/index.ts`) directly calls Apify API, bypassing the local Hono API server. This is intentional for learning purposes but creates a divergence in integration patterns between the web app and CLI.
 
-```bash
-apify-lab actors list [--category <cat>] [--difficulty <level>]
-apify-lab actors search <query>
-apify-lab actors info <actorId>
-apify-lab actors run <actorId> [--input <json>] [--wait]
-```
-
-#### Datasets Commands
-
-```bash
-apify-lab datasets list [--limit <n>]
-apify-lab datasets show <datasetId> [--limit <n>] [--offset <n>]
-apify-lab datasets export <datasetId> [--format json|csv] [--output <file>]
-apify-lab datasets delete <datasetId> [--force]
-```
-
-#### Storage Commands
-
-```bash
-apify-lab storage list
-apify-lab storage show <storeId>
-apify-lab storage get <storeId> <key>
-apify-lab storage set <storeId> <key> [--value <json>]
-apify-lab storage delete <storeId> <key>
-```
-
-#### Runs Commands
-
-```bash
-apify-lab runs list [--status <status>] [--limit <n>]
-apify-lab runs show <runId>
-apify-lab runs logs <runId> [--follow]
-apify-lab runs abort <runId>
-apify-lab runs resurrect <runId>
-```
+All CLI commands are implemented and functional.
 
 ---
 
-## 8. Popular Actors Database
+## 8. Known Gaps and Issues
 
-### 8.1 Actor Categories
+### 8.1 Backend API
+- **Missing Storage Routes**: `/api/storage` endpoints are not implemented
+- **Hard Download Limit**: Dataset download pulls max 10,000 items into memory
+- **No Input Validation**: Some routes lack Zod validation
 
-#### AI/LLM Data Extraction
+### 8.2 Frontend Web
+- **Broken Links**: Dashboard "View" links point to non-existent `/runs/:id` route
+- **Storage Page Errors**: Storage page will 404 due to missing API routes
+- **inconsistent API Client**: Mixed fetch patterns and response handling
+- **Hardcoded URLs**: Download links bypass Vite proxy
 
-| Actor ID | Name | Input Example |
-|----------|------|---------------|
-| `apify/website-content-crawler` | Website Content Crawler | `{"startUrls": [{"url": "https://docs.example.com"}], "maxCrawlPages": 100}` |
-| `apify/rag-web-browser` | RAG Web Browser | `{"query": "what is web scraping", "maxResults": 5}` |
-| `apify/cheerio-scraper` | Cheerio Scraper | `{"startUrls": [{"url": "https://example.com"}]}` |
-
-#### Social Media
-
-| Actor ID | Name | Input Example |
-|----------|------|---------------|
-| `apify/instagram-scraper` | Instagram Scraper | `{"directUrls": ["https://instagram.com/apaborena"], "resultsLimit": 30}` |
-| `clockworks/free-tiktok-scraper` | TikTok Scraper | `{"profiles": ["tiktok"], "resultsPerPage": 10}` |
-| `apidojo/twitter-scraper-lite` | Twitter/X Scraper | `{"searchTerms": ["web scraping"], "maxTweets": 100}` |
-| `apify/facebook-posts-scraper` | Facebook Posts | `{"startUrls": [{"url": "https://facebook.com/apaborena"}]}` |
-
-#### Business Data
-
-| Actor ID | Name | Input Example |
-|----------|------|---------------|
-| `apify/google-maps-scraper` | Google Maps | `{"searchStringsArray": ["restaurants in NYC"], "maxCrawledPlaces": 50}` |
-| `compass/crawler-google-places` | Google Places | `{"searchQuery": "coffee shops", "location": "San Francisco"}` |
-| `bebity/linkedin-profile-scraper` | LinkedIn | `{"profileUrls": ["https://linkedin.com/in/example"]}` |
-
-#### E-commerce
-
-| Actor ID | Name | Input Example |
-|----------|------|---------------|
-| `junglee/amazon-product-scraper` | Amazon Products | `{"categoryUrls": ["https://amazon.com/s?k=laptop"]}` |
-| `epctex/ebay-scraper` | eBay | `{"searchQuery": "vintage watches", "maxItems": 100}` |
-
-#### Developer Tools
-
-| Actor ID | Name | Input Example |
-|----------|------|---------------|
-| `apify/web-scraper` | Web Scraper | `{"startUrls": [{"url": "https://example.com"}], "pageFunction": "..."}` |
-| `apify/puppeteer-scraper` | Puppeteer | `{"startUrls": [...], "pageFunction": "..."}` |
-| `apify/playwright-scraper` | Playwright | `{"startUrls": [...], "pageFunction": "..."}` |
+### 8.3 Project Structure
+- **Missing Files**: Multiple Python scripts referenced in README don't exist
+- **Outdated Documentation**: OPENSPEC.md references features not yet built
+- **No Test Suite**: No tests implemented yet
 
 ---
 
@@ -1039,7 +941,6 @@ python 01_hello_world.py
 
 # Use CLI
 cd cli
-bun install
 bun run cli actors list
 ```
 
@@ -1065,30 +966,13 @@ bun run cli actors list
 
 ## 11. Testing Strategy
 
-### 11.1 Backend Tests
+**Not yet implemented.**
 
-```typescript
-// packages/api/tests/actors.test.ts
-import { describe, it, expect } from "bun:test";
-import app from "../src/index";
-
-describe("Actors API", () => {
-  it("should return popular actors", async () => {
-    const res = await app.request("/api/actors/popular");
-    expect(res.status).toBe(200);
-    const json = await res.json();
-    expect(json.data).toBeArray();
-  });
-});
-```
-
-### 11.2 Test Coverage Goals
-
-| Area | Coverage Target |
-|------|-----------------|
-| API Routes | 80% |
-| Apify Client | 70% |
-| Utilities | 90% |
+Recommended approach:
+- Unit tests for `ApifyClient` service methods
+- Integration tests for API routes using Hono's test utilities
+- Component tests for React components using React Testing Library
+- E2E tests for critical user flows (actor run, dataset viewing)
 
 ---
 
@@ -1097,11 +981,14 @@ describe("Actors API", () => {
 ### 12.1 Production Checklist
 
 - [ ] Environment variables secured
-- [ ] API rate limiting implemented
+- [ ] API rate limiting implemented  
 - [ ] Error logging configured
 - [ ] CORS properly configured
 - [ ] Static assets optimized
 - [ ] Health checks verified
+- [ ] Missing storage routes implemented
+- [ ] Frontend API client inconsistencies resolved
+- [ ] All referenced Python scripts created
 
 ### 12.2 Recommended Hosting
 
@@ -1143,3 +1030,4 @@ describe("Actors API", () => {
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2024-12-14 | AI Assistant | Initial specification |
+| 1.0.1 | 2024-12-14 | AI Assistant | Updated to reflect actual implementation, documented gaps and inconsistencies |
