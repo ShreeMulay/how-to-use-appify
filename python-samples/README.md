@@ -39,7 +39,7 @@ This directory contains standalone Python scripts demonstrating various Apify fe
 | Script | Description | Actor Used |
 |--------|-------------|------------|
 | `03_web_scraper_custom.py` | Custom JavaScript page functions | `apify/web-scraper` |
-| `04_google_maps_scraper.py` | Extract business data | `apify/google-maps-scraper` |
+| `04_google_maps_scraper.py` | Extract business data | `compass/crawler-google-places` |
 
 ### Social Media
 
@@ -53,16 +53,18 @@ This directory contains standalone Python scripts demonstrating various Apify fe
 
 | Script | Description | Actor Used |
 |--------|-------------|------------|
-| `08_amazon_scraper.py` | Product data extraction | `junglee/amazon-product-scraper` |
+| `08_amazon_scraper.py` | Product data extraction | `junglee/amazon-crawler` |
 
-### Advanced
+### Advanced (Storage & Management)
 
 | Script | Description | Feature |
 |--------|-------------|---------|
 | `09_dataset_operations.py` | CRUD operations on datasets | Datasets API |
 | `10_key_value_store.py` | Store and retrieve data | Key-Value Stores API |
 | `11_run_management.py` | Monitor and control runs | Runs API |
-| `12_scheduled_tasks.py` | Schedule recurring runs | Schedules API |
+| `12_scheduled_tasks.py` | Schedule recurring runs & webhooks | Schedules API |
+
+**All 12 scripts are now available!**
 
 ## Running Scripts
 

@@ -6,10 +6,10 @@
 |-------|-------|
 | **Project Name** | Apify Learning Lab |
 | **Repository** | `how-to-use-appify` |
-| **Version** | 1.1.0 |
+| **Version** | 1.2.0 |
 | **Created** | 2024-12-14 |
 | **Last Updated** | 2025-12-15 |
-| **Status** | Functional MVP |
+| **Status** | Feature Complete |
 
 ---
 
@@ -864,24 +864,22 @@ App
 
 ## 6. Python Samples Specification
 
-### 6.1 Script Index
+### 6.1 Script Index ✅ (All 12 Scripts Complete)
 
 | # | Filename | Actor/Feature | Concepts Covered |
 |---|----------|---------------|------------------|
 | 01 | `01_hello_world.py` | Basic API | Client setup, authentication, user info |
 | 02 | `02_website_content_crawler.py` | `apify/website-content-crawler` | Running actors, getting results |
-
-Planned (not currently present in `python-samples/`):
-- `03_web_scraper_custom.py`
-- `04_google_maps_scraper.py`
-- `05_instagram_scraper.py`
-- `06_tiktok_scraper.py`
-- `07_twitter_scraper.py`
-- `08_amazon_scraper.py`
-- `09_dataset_operations.py`
-- `10_key_value_store.py`
-- `11_run_management.py`
-- `12_scheduled_tasks.py`
+| 03 | `03_web_scraper_custom.py` | `apify/web-scraper` | Custom JS page functions, link selectors |
+| 04 | `04_google_maps_scraper.py` | `compass/crawler-google-places` | Business data, reviews, geo-search |
+| 05 | `05_instagram_scraper.py` | `apify/instagram-scraper` | Social media, engagement metrics |
+| 06 | `06_tiktok_scraper.py` | `clockworks/free-tiktok-scraper` | Video data, hashtags, viral content |
+| 07 | `07_twitter_scraper.py` | `apidojo/twitter-scraper-lite` | Tweets, search operators, sentiment |
+| 08 | `08_amazon_scraper.py` | `junglee/amazon-crawler` | E-commerce, pricing, product data |
+| 09 | `09_dataset_operations.py` | Datasets API | CRUD operations, export formats |
+| 10 | `10_key_value_store.py` | Key-Value Stores API | Persistent storage, caching |
+| 11 | `11_run_management.py` | Runs API | Monitoring, abort/resurrect, logs |
+| 12 | `12_scheduled_tasks.py` | Schedules & Webhooks API | Cron jobs, automation, notifications |
 
 
 ### 6.2 Script Template
