@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/lib/api-client"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -5,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function Runs() {
+  const navigate = useNavigate()
   const { data, isLoading } = useQuery({
     queryKey: ["runs"],
     queryFn: () => api.runs.list(),
@@ -40,7 +42,7 @@ export default function Runs() {
               ))
             ) : data?.items?.length ? (
               data.items.map((run: any) => (
-                <TableRow key={run.id}>
+                <TableRow key={run.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/runs/${run.id}`)}>
                   <TableCell>
                     <Badge variant={run.status === 'SUCCEEDED' ? 'default' : run.status === 'RUNNING' ? 'secondary' : 'destructive'}>
                       {run.status}

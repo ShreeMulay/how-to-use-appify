@@ -6,7 +6,9 @@ import ActorRunner from '@/pages/ActorRunner'
 import Datasets from '@/pages/Datasets'
 import DatasetViewer from '@/pages/DatasetViewer'
 import Storage from '@/pages/Storage'
+import StorageDetails from '@/pages/StorageDetails'
 import Runs from '@/pages/Runs'
+import RunDetails from '@/pages/RunDetails'
 
 function App() {
   return (
@@ -18,7 +20,9 @@ function App() {
         <Route path="/datasets" element={<Datasets />} />
         <Route path="/datasets/:datasetId" element={<DatasetViewer />} />
         <Route path="/storage" element={<Storage />} />
+        <Route path="/storage/:storeId" element={<StorageDetails />} />
         <Route path="/runs" element={<Runs />} />
+        <Route path="/runs/:runId" element={<RunDetails />} />
       </Routes>
     </AppLayout>
   )

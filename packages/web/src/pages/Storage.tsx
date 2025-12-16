@@ -1,9 +1,11 @@
+import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/lib/api-client"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function Storage() {
+  const navigate = useNavigate()
   const { data, isLoading } = useQuery({
     queryKey: ["storage"],
     queryFn: () => api.storage.list(),
@@ -35,7 +37,7 @@ export default function Storage() {
               ))
             ) : data?.items?.length ? (
               data.items.map((store: any) => (
-                <TableRow key={store.id}>
+                <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/storage/${store.id}`)}>
                   <TableCell className="font-mono text-xs">{store.id}</TableCell>
                   <TableCell>{store.name || "-"}</TableCell>
                   <TableCell>{new Date(store.createdAt).toLocaleDateString()}</TableCell>
