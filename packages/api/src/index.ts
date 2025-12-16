@@ -13,6 +13,7 @@ import { errorHandler, notFoundHandler } from "./middleware/error-handler";
 import actorsRouter from "./routes/actors";
 import datasetsRouter from "./routes/datasets";
 import runsRouter from "./routes/runs";
+import storageRouter from "./routes/storage";
 import { getApifyClient } from "./services/apify-client";
 
 // Create the Hono app
@@ -89,6 +90,7 @@ app.get("/api/health/apify", async (c) => {
 app.route("/api/actors", actorsRouter);
 app.route("/api/datasets", datasetsRouter);
 app.route("/api/runs", runsRouter);
+app.route("/api/storage", storageRouter);
 
 // ===========================================================================
 // Root Route
@@ -97,7 +99,7 @@ app.route("/api/runs", runsRouter);
 app.get("/", (c) => {
   return c.json({
     name: "Apify Learning Lab API",
-    version: "1.0.0",
+    version: "1.1.0",
     documentation: "/api",
     endpoints: {
       health: "/api/health",
@@ -124,6 +126,15 @@ app.get("/", (c) => {
         abort: "/api/runs/:runId/abort",
         resurrect: "/api/runs/:runId/resurrect",
       },
+      storage: {
+        list: "/api/storage",
+        get: "/api/storage/:storeId",
+        keys: "/api/storage/:storeId/keys",
+        getRecord: "/api/storage/:storeId/records/:key",
+        setRecord: "/api/storage/:storeId/records/:key [PUT]",
+        deleteRecord: "/api/storage/:storeId/records/:key [DELETE]",
+        deleteStore: "/api/storage/:storeId [DELETE]",
+      },
     },
   });
 });
@@ -138,7 +149,7 @@ app.notFound(notFoundHandler);
 // Start Server
 // ===========================================================================
 
-const port = parseInt(process.env.API_PORT || "3001", 10);
+const port = Number.parseInt(process.env.API_PORT || "3001", 10);
 
 console.log(`
 ╔══════════════════════════════════════════════════════════════╗

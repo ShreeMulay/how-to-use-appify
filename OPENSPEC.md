@@ -6,7 +6,7 @@
 |-------|-------|
 | **Project Name** | Apify Learning Lab |
 | **Repository** | `how-to-use-appify` |
-| **Version** | 1.0.1 |
+| **Version** | 1.1.0 |
 | **Created** | 2024-12-14 |
 | **Last Updated** | 2025-12-15 |
 | **Status** | Functional MVP |
@@ -113,7 +113,8 @@ how-to-use-appify/
 │   │       ├── routes/
 │   │       │   ├── actors.ts         # Actor-related endpoints
 │   │       │   ├── datasets.ts       # Dataset endpoints
-│   │       │   └── runs.ts           # Run management endpoints
+│   │       │   ├── runs.ts           # Run management endpoints
+│   │       │   └── storage.ts        # Key-Value Store endpoints
 │   │       ├── services/
 │   │       │   └── apify-client.ts   # Apify API wrapper
 │   │       ├── middleware/
@@ -175,12 +176,10 @@ how-to-use-appify/
 
 Returns curated list of learning-friendly actors.
 
-**Implementation Status:** ✅ **Implemented**
-
 **Query Parameters (optional):**
 - `category` (string)
-- `difficulty` (string) 
-- `search` (string) ⚠️ TODO - filtering not yet implemented
+- `difficulty` (string)
+- `search` (string)
 
 **Response:**
 ```json
@@ -262,8 +261,6 @@ Returns the input schema for an actor.
 
 Starts an actor run with the provided input.
 
-**Implementation Status:** ✅ **Implemented**
-
 **Request Body:**
 ```json
 {
@@ -335,8 +332,6 @@ Returns the run log.
 #### POST /api/actors/:actorId/runs/:runId/abort
 
 Aborts a running actor.
-
-**Implementation Status:** ✅ **Implemented** (via `/api/runs/:runId/abort`)
 
 **Response:**
 ```json
@@ -428,8 +423,6 @@ Returns dataset items with pagination.
 
 Pushes items to a dataset.
 
-**Implementation Status:** ❌ **Not Implemented** - ⚠️ TODO
-
 **Request Body:**
 ```json
 {
@@ -464,8 +457,6 @@ Downloads dataset items as CSV or JSON.
 
 Deletes a dataset.
 
-**Implementation Status:** ❌ **Not Implemented** - ⚠️ TODO
-
 **Response:**
 ```json
 {
@@ -475,14 +466,112 @@ Deletes a dataset.
 }
 ```
 
-### 3.4 Storage Endpoints (Key-Value Stores)
+### 3.4 Storage Endpoints (Key-Value Stores) ✅
 
-Not implemented in `packages/api` in this version. ⚠️ **TODO** 
+Fully implemented in `packages/api/src/routes/storage.ts`.
 
-Status: **Not Available**
-- The frontend has a Storage page component (`packages/web/src/pages/Storage.tsx`) but it 404s due to missing API routes
-- Key-value store support exists in the backend Apify client wrapper (`packages/api/src/services/apify-client.ts`) and CLI client (`cli/src/lib/client.ts`)
-- Need to implement `/api/storage` router in Hono API server
+#### GET /api/storage
+
+Lists all key-value stores.
+
+**Query Parameters:**
+- `limit` (number) - Max results (default: 20)
+- `offset` (number) - Pagination offset
+- `unnamed` (boolean) - Include unnamed stores
+
+**Response:**
+```json
+{
+  "data": {
+    "items": [
+      {
+        "id": "store123",
+        "name": "my-store",
+        "userId": "user123",
+        "createdAt": "2024-12-15T10:00:00.000Z",
+        "modifiedAt": "2024-12-15T10:00:00.000Z",
+        "accessedAt": "2024-12-15T10:00:00.000Z"
+      }
+    ],
+    "total": 1,
+    "offset": 0,
+    "limit": 20
+  }
+}
+```
+
+#### GET /api/storage/:storeId
+
+Gets key-value store info by ID.
+
+#### GET /api/storage/:storeId/keys
+
+Lists all keys in a key-value store.
+
+**Query Parameters:**
+- `limit` (number) - Max results (default: 100, max: 1000)
+- `exclusiveStartKey` (string) - Pagination cursor
+
+**Response:**
+```json
+{
+  "data": {
+    "items": [
+      { "key": "config", "size": 256 },
+      { "key": "state", "size": 1024 }
+    ],
+    "count": 2,
+    "limit": 100,
+    "isTruncated": false,
+    "exclusiveStartKey": null,
+    "nextExclusiveStartKey": null
+  }
+}
+```
+
+#### GET /api/storage/:storeId/records/:key
+
+Gets a record value from key-value store.
+
+**Response:**
+```json
+{
+  "data": {
+    "key": "config",
+    "value": { "setting1": true, "setting2": "value" }
+  }
+}
+```
+
+#### PUT /api/storage/:storeId/records/:key
+
+Sets a record in key-value store.
+
+**Request Body:**
+```json
+{
+  "value": { "any": "json value" },
+  "contentType": "application/json"
+}
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "success": true,
+    "key": "config"
+  }
+}
+```
+
+#### DELETE /api/storage/:storeId/records/:key
+
+Deletes a record from key-value store.
+
+#### DELETE /api/storage/:storeId
+
+Deletes an entire key-value store.
 
 ### 3.5 Runs Endpoints
 
@@ -517,22 +606,18 @@ Lists recent actor runs.
 #### GET /api/runs/:runId
 
 Returns detailed run information.
-**Implementation Status:** ✅ **Implemented**
 
 #### GET /api/runs/:runId/log
 
 Returns run log content.
-**Implementation Status:** ❌ **Not Implemented** - ⚠️ TODO
 
 #### POST /api/runs/:runId/abort
 
 Aborts a running actor.
-**Implementation Status:** ✅ **Implemented**
 
 #### POST /api/runs/:runId/resurrect
 
 Resurrects a finished run.
-**Implementation Status:** ❌ **Not Implemented** - ⚠️ TODO
 
 ### 3.6 Health Endpoints
 
@@ -697,24 +782,12 @@ type ApiResult<T> = ApiResponse<T> | ApiError;
 | `/actors/:actorId` | `ActorRunner` | Actor info + run interface |
 | `/datasets` | `Datasets` | Browse all datasets |
 | `/datasets/:datasetId` | `DatasetViewer` | View dataset items |
-| `/storage` | `Storage` | Browse key-value stores (⚠️ currently 404s - TODO: implement `/api/storage` route) |
+| `/storage` | `Storage` | Browse key-value stores ✅ |
 | `/runs` | `Runs` | List all runs |
 
-**Current Implementation Status: All core pages implemented except run details**
-
-| Route | Component | Status | Notes |
-|-------|-----------|---------|-------|
-| `/` | `Dashboard` | ✅ Implemented | Overview with stats and recent activity |
-| `/actors` | `ActorExplorer` | ✅ Implemented | Browse curated actors |
-| `/actors/:actorId` | `ActorRunner` | ✅ Implemented | Actor info + run interface |
-| `/datasets` | `Datasets` | ✅ Implemented | Browse all datasets |
-| `/datasets/:datasetId` | `DatasetViewer` | ✅ Implemented | View dataset items |
-| `/storage` | `Storage` | ⚠️ Partial | Frontend exists but 404s - missing API |
-| `/runs` | `Runs` | ✅ Implemented | List all runs |
-
-**Missing routes (TODO):**
-- `/runs/:runId` (run details/log viewer) - ⚠️ TODO
-- `/storage/:storeId` (store record viewer/editor) - ⚠️ TODO
+Planned (not implemented in `packages/web` yet):
+- `/runs/:runId` (run details/log viewer)
+- `/storage/:storeId` (store record viewer/editor) - API ready, frontend pending
 
 
 ### 5.2 Component Hierarchy
@@ -793,24 +866,22 @@ App
 
 ### 6.1 Script Index
 
-| # | Filename | Actor/Feature | Concepts Covered | Status |
-|---|----------|---------------|------------------|---------|
-| 01 | `01_hello_world.py` | Basic API | Client setup, authentication, user info | ✅ Implemented |
-| 02 | `02_website_content_crawler.py` | `apify/website-content-crawler` | Running actors, getting results | ✅ Implemented |
-
-**Implementation Status: 2 of 12 scripts completed (17%)**
+| # | Filename | Actor/Feature | Concepts Covered |
+|---|----------|---------------|------------------|
+| 01 | `01_hello_world.py` | Basic API | Client setup, authentication, user info |
+| 02 | `02_website_content_crawler.py` | `apify/website-content-crawler` | Running actors, getting results |
 
 Planned (not currently present in `python-samples/`):
-- `03_web_scraper_custom.py` - ⚠️ TODO
-- `04_google_maps_scraper.py` - ⚠️ TODO 
-- `05_instagram_scraper.py` - ⚠️ TODO
-- `06_tiktok_scraper.py` - ⚠️ TODO
-- `07_twitter_scraper.py` - ⚠️ TODO
-- `08_amazon_scraper.py` - ⚠️ TODO
-- `09_dataset_operations.py` - ⚠️ TODO
-- `10_key_value_store.py` - ⚠️ TODO
-- `11_run_management.py` - ⚠️ TODO
-- `12_scheduled_tasks.py` - ⚠️ TODO
+- `03_web_scraper_custom.py`
+- `04_google_maps_scraper.py`
+- `05_instagram_scraper.py`
+- `06_tiktok_scraper.py`
+- `07_twitter_scraper.py`
+- `08_amazon_scraper.py`
+- `09_dataset_operations.py`
+- `10_key_value_store.py`
+- `11_run_management.py`
+- `12_scheduled_tasks.py`
 
 
 ### 6.2 Script Template
@@ -864,8 +935,6 @@ if __name__ == "__main__":
 
 ### 7.1 Command Structure
 
-**Implementation Status:** ✅ **Fully Implemented**
-
 ```
 apify-lab <command> [subcommand] [options]
 
@@ -878,7 +947,7 @@ Commands:
 Global Options:
   --help, -h     Show help
   --version, -v  Show version
-  --json         Output as JSON (not yet implemented)
+  --json         Output as JSON
 ```
 
 ### 7.2 Command Details
@@ -1049,25 +1118,8 @@ bun run cli actors list
 
 ## 11. Testing Strategy
 
-### 11.1 Testing Status
+### 11.1 Backend Tests
 
-**Current Implementation: ❌ No Tests Implemented**
-
-- No test files found in `packages/api/tests/` directory
-- No test coverage metrics available
-- Testing framework (Bun test) is configured but no tests written
-
-### 11.2 Test Coverage Goals
-
-**Test Coverage Status: 0%**
-
-| Area | Target | Current | Status |
-|------|--------|---------|--------|
-| API Routes | 80% | 0% | ⚠️ TODO |
-| Apify Client | 70% | 0% | ⚠️ TODO |
-| Utilities | 90% | 0% | ⚠️ TODO |
-
-**Sample Test Structure (TODO):**
 ```typescript
 // packages/api/tests/actors.test.ts
 import { describe, it, expect } from "bun:test";
@@ -1083,20 +1135,26 @@ describe("Actors API", () => {
 });
 ```
 
+### 11.2 Test Coverage Goals
+
+| Area | Coverage Target |
+|------|-----------------|
+| API Routes | 80% |
+| Apify Client | 70% |
+| Utilities | 90% |
+
 ---
 
 ## 12. Deployment Considerations
 
 ### 12.1 Production Checklist
 
-**Production Readiness Status: Partial**
-
-- [x] Environment variables secured
-- [ ] API rate limiting implemented ⚠️ TODO
-- [x] Error logging configured
-- [x] CORS properly configured
-- [x] Static assets optimized
-- [x] Health checks verified
+- [ ] Environment variables secured
+- [ ] API rate limiting implemented
+- [ ] Error logging configured
+- [ ] CORS properly configured
+- [ ] Static assets optimized
+- [ ] Health checks verified
 
 ### 12.2 Recommended Hosting
 
@@ -1133,78 +1191,9 @@ describe("Actors API", () => {
 
 ---
 
-## 14. Implementation Status Summary
-
-### 14.1 Overall Project Status: **Functional MVP** ✅
-
-The Apify Learning Lab is now a working MVP with the core functionality operational. Users can:
-
-- ✅ Explore and run actors through the web interface
-- ✅ View and manage datasets
-- ✅ Monitor run history
-- ✅ Use the CLI for quick operations
-- ✅ Run basic Python learning scripts
-
-### 14.2 Component Status Overview
-
-| Component | Status | Progress | Notes |
-|-----------|---------|----------|-------|
-| **Backend API (Hono)** | ✅ Functional | 85% | Core endpoints implemented, missing some features |
-| **Frontend (React/Shadcn)** | ✅ Functional | 90% | All main pages working, storage page needs API |
-| **CLI (Commander.js)** | ✅ Functional | 95% | Nearly complete, missing --json output |
-| **Python Samples** | ⚠️ Partial | 17% | Only 2 of 12 scripts implemented |
-| **Testing** | ❌ Missing | 0% | No tests written yet |
-| **Documentation** | ✅ Complete | 95% | Comprehensive spec with status tracking |
-
-### 14.3 Key Achievement Highlights
-
-✅ **Working Actor Explorer**: Browse curated actors and run them with custom inputs  
-✅ **Dataset Management**: List, view, and export dataset items  
-✅ **Run Monitoring**: Track actor runs and view results  
-✅ **CLI Tool**: Terminal-based workflow for power users  
-✅ **Modern Tech Stack**: Bun, Hono, React 19, shadcn/ui v4  
-
-### 14.4 Remaining TODOs (High Priority)
-
-| Area | Feature | Status | Impact |
-|------|---------|--------|--------|
-| **API** | Storage endpoints (`/api/storage`) | ❌ Missing | Storage page 404s |
-| **API** | Run log endpoint (`/api/runs/:runId/log`) | ❌ Missing | Can't view run logs |
-| **API** | Dataset write operations | ❌ Missing | Can't push/delete items |
-| **Frontend** | Run details page (`/runs/:runId`) | ❌ Missing | No detailed run view |
-| **Python** | 10 remaining sample scripts | ❌ Missing | Incomplete learning path |
-| **Testing** | Unit & integration tests | ❌ Missing | No confidence in code |
-| **CLI** | JSON output format | ⚠️ Partial | Limited automation use |
-
-### 14.5 Quick Start for New Users
-
-The MVP is fully functional for learning Apify basics:
-
-```bash
-# 1. Setup the project
-cd how-to-use-appify
-bun install
-cp .env.example .env  # Add your APIFY_API_TOKEN
-
-# 2. Start both servers
-bun run dev  # Starts API (:3001) + Web (:5173)
-
-# 3. Try the CLI
-bun run cli actors list
-bun run cli actors run apify/website-content-crawler -i '{"startUrls":[{"url":"https://example.com"}]}'
-
-# 4. Run Python samples
-cd python-samples
-pip install -r requirements.txt
-python 01_hello_world.py
-```
-
----
-
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2024-12-14 | AI Assistant | Initial specification |
 | 1.0.1 | 2025-12-15 | AI Assistant | Align spec to current repo (routes, pages, CLI, python samples) |
-| 1.0.2 | 2025-12-15 | AI Assistant | Add implementation status indicators throughout document |

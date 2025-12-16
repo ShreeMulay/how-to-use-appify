@@ -225,11 +225,15 @@ GET  /api/datasets/:id/items     # Get dataset items
 POST /api/datasets/:id/items     # Push items
 ```
 
-### Storage
+### Storage (Key-Value Stores)
 ```
-GET  /api/storage                # List key-value stores
-GET  /api/storage/:id/records/:key  # Get record
-PUT  /api/storage/:id/records/:key  # Set record
+GET    /api/storage                     # List key-value stores
+GET    /api/storage/:id                 # Get store info
+GET    /api/storage/:id/keys            # List keys in store
+GET    /api/storage/:id/records/:key    # Get record
+PUT    /api/storage/:id/records/:key    # Set record
+DELETE /api/storage/:id/records/:key    # Delete record
+DELETE /api/storage/:id                 # Delete store
 ```
 
 ### Runs
